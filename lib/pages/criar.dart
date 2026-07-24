@@ -6,7 +6,7 @@ class Cadastro extends StatelessWidget {
   @override
   Widget build(BuildContext contexto) {
     return Scaffold(
-      backgroundColor: Colors.black87, // Fundo escuro igual ao Login
+      backgroundColor: Colors.black87,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -20,7 +20,7 @@ class Cadastro extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white, // Texto em branco
+                      color: Colors.white,
                     ),
                   ),
                 ),
@@ -32,10 +32,7 @@ class Cadastro extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 30),
-                const Text(
-                  "Nome",
-                  style: TextStyle(color: Colors.white),
-                ),
+                const Text("Nome", style: TextStyle(color: Colors.white)),
                 const SizedBox(height: 8),
                 TextField(
                   style: const TextStyle(color: Colors.white),
@@ -52,10 +49,7 @@ class Cadastro extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 20),
-                const Text(
-                  "Email",
-                  style: TextStyle(color: Colors.white),
-                ),
+                const Text("Email", style: TextStyle(color: Colors.white)),
                 const SizedBox(height: 8),
                 TextField(
                   style: const TextStyle(color: Colors.white),
@@ -72,10 +66,7 @@ class Cadastro extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 20),
-                const Text(
-                  "Senha",
-                  style: TextStyle(color: Colors.white),
-                ),
+                const Text("Senha", style: TextStyle(color: Colors.white)),
                 const SizedBox(height: 8),
                 TextField(
                   obscureText: true,

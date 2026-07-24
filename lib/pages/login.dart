@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'criar.dart';
 import 'chart.dart';
+import 'pessoas.dart';
 
 class Login extends StatelessWidget {
   const Login({super.key});
@@ -86,7 +87,7 @@ class Login extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const Chat(),
+                          builder: (context) => const Entrada(),
                         ),
                       );
                     },
