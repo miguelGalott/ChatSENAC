@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'criar.dart';
-import 'chart.dart';
 import 'pessoas.dart';
 
 class Login extends StatelessWidget {
@@ -23,22 +22,19 @@ class Login extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 30,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white
+                    color: Colors.white,
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text("Preenche aí embaixo vai",
-                  style: TextStyle(
-                      color: Colors.white70
-                  ),
+                const Text(
+                  "Preenche aí embaixo vai",
+                  style: TextStyle(color: Colors.white70),
                 ),
                 const SizedBox(height: 30),
-                const Text("Email",
-                  style: TextStyle(
-                      color: Colors.white),
-                ),
+                const Text("Email", style: TextStyle(color: Colors.white)),
                 const SizedBox(height: 8),
                 TextField(
+                  style: TextStyle(color: Colors.white),
                   decoration: InputDecoration(
                     hintText: "Dantesoufoda@exemplo.com",
                     border: OutlineInputBorder(
@@ -47,12 +43,10 @@ class Login extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 20),
-                const Text("Senha:",
-                  style: TextStyle(
-                      color: Colors.white),
-                ),
+                const Text("Senha:", style: TextStyle(color: Colors.white)),
                 const SizedBox(height: 8),
                 TextField(
+                  style: TextStyle(color: Colors.white),
                   obscureText: true,
                   decoration: InputDecoration(
                     hintText: "••••••••",
@@ -103,12 +97,7 @@ class Login extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
                 const Center(
-                  child: Text(
-                    "Ou",
-                    style: TextStyle(
-                      color: Colors.white60,
-                    ),
-                  ),
+                  child: Text("Ou", style: TextStyle(color: Colors.white60)),
                 ),
                 const SizedBox(height: 20),
                 Container(
@@ -121,10 +110,9 @@ class Login extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       SizedBox(width: 10),
-                      Text('Com o Google'
-                        ,
-                        style: TextStyle(
-                            color: Colors.white),
+                      Text(
+                        'Com o Google',
+                        style: TextStyle(color: Colors.white),
                       ),
                     ],
                   ),
@@ -133,7 +121,6 @@ class Login extends StatelessWidget {
                 Container(
                   height: 50,
                   decoration: BoxDecoration(
-
                     border: Border.all(color: Colors.grey.shade300),
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -141,9 +128,9 @@ class Login extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       SizedBox(width: 10),
-                      Text('Com o Trem de velho la',
-                        style: TextStyle(
-                            color: Colors.white),
+                      Text(
+                        'Com o Trem de velho la',
+                        style: TextStyle(color: Colors.white),
                       ),
                     ],
                   ),

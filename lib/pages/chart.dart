@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 
-
-
 class Chat extends StatefulWidget {
-  const Chat({super.key});
+  final String nome;
+
+  const Chat({
+    super.key,
+    required this.nome,
+  });
 
   @override
   State<Chat> createState() => _ChatState();
@@ -14,12 +17,12 @@ class _ChatState extends State<Chat> {
   final List<String> _mensagens = [];
 
   void _enviarMensagem() {
-
+    if (_mensagemController.text.trim().isNotEmpty) {
       setState(() {
         _mensagens.add(_mensagemController.text.trim());
       });
       _mensagemController.clear();
-
+    }
   }
 
   @override
@@ -27,20 +30,18 @@ class _ChatState extends State<Chat> {
     return Scaffold(
       backgroundColor: Colors.black87,
       appBar: AppBar(
-        title: const Center(
-          child: const Text("SenaChat",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 40,
-                fontWeight: FontWeight.bold,
-              ) ),
-
-      ),
+        // Acessa o nome recebido pelo widget pai via widget.nome
+        title: Text(
+          widget.nome,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         backgroundColor: Colors.blue,
       ),
       body: Column(
         children: [
-
           Expanded(
             child: _mensagens.isEmpty
                 ? const Center(
@@ -84,7 +85,7 @@ class _ChatState extends State<Chat> {
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Color.fromRGBO(0, 0, 0, 0.1),
                     blurRadius: 6,
                     offset: const Offset(0, 2),
                   ),
@@ -103,7 +104,7 @@ class _ChatState extends State<Chat> {
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.send, color: Colors.white),
+                    icon: const Icon(Icons.send, color: Colors.blue),
                     onPressed: _enviarMensagem,
                   ),
                 ],

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'chart.dart';
 
-
 class EntradaDinamic extends StatefulWidget {
   const EntradaDinamic({super.key});
 
@@ -10,32 +9,24 @@ class EntradaDinamic extends StatefulWidget {
 }
 
 class _EntradaDinamicState extends State<EntradaDinamic> {
-
   final TextEditingController _nomeController = TextEditingController();
 
   final List<Map<String, String>> _usuarios = [];
 
-
   void _adicionarUsuario() {
     if (_nomeController.text.isNotEmpty) {
       setState(() {
-        _usuarios.add({
-          'nome': _nomeController.text,
-
-
-        });
+        _usuarios.add({'nome': _nomeController.text});
       });
 
       // Limpa os campos após salvar
       _nomeController.clear();
-
     }
   }
 
   // Função para limpar os campos
   void _limpar() {
     _nomeController.clear();
-
   }
 
   @override
@@ -51,7 +42,6 @@ class _EntradaDinamicState extends State<EntradaDinamic> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              // --- FORMULÁRIO (MINI CONTAINER COM 2 CAMPOS E 2 BOTÕES) ---
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -72,10 +62,8 @@ class _EntradaDinamicState extends State<EntradaDinamic> {
                     ),
                     const SizedBox(height: 12),
 
-
                     Row(
                       children: [
-
                         Expanded(
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
@@ -86,7 +74,6 @@ class _EntradaDinamicState extends State<EntradaDinamic> {
                           ),
                         ),
                         const SizedBox(width: 12),
-
 
                         Expanded(
                           child: ElevatedButton(
@@ -110,7 +97,6 @@ class _EntradaDinamicState extends State<EntradaDinamic> {
               ),
               const SizedBox(height: 12),
 
-
               ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
@@ -123,13 +109,13 @@ class _EntradaDinamicState extends State<EntradaDinamic> {
                       color: Colors.white24,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    // Corrigido: O clique vai no onTap do ListTile
+
                     child: ListTile(
                       onTap: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const Chat(),
+                            builder: (context) => Chat(nome: usuario['nome']!),
                           ),
                         );
                       },
@@ -141,7 +127,7 @@ class _EntradaDinamicState extends State<EntradaDinamic> {
                           height: 40,
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) =>
-                          const Icon(Icons.person, color: Colors.white),
+                              const Icon(Icons.person, color: Colors.white),
                         ),
                       ),
                       title: Text(
@@ -155,11 +141,6 @@ class _EntradaDinamicState extends State<EntradaDinamic> {
                   );
                 },
               ),
-
-
-
-
-
             ],
           ),
         ),
