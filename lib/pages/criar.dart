@@ -1,7 +1,74 @@
 import 'package:flutter/material.dart';
+import 'package:primeiro_app/bancoDados/conect.dart';
+import 'pessoas.dart';
 
-class Cadastro extends StatelessWidget {
+class AuthService {
+
+  static Future<bool> cadastrarUsuario(String usu, String senha, String email) async {
+    try {
+      var conn = await ConexaoMysql.obterConexao();
+
+      var resultados = await conn.query(
+        'INSERT INTO USUARIOS (NOME, SENHA, EMAIL) VALUES (?, ?, ?)',
+        [usu, senha, email],
+      );
+
+      await conn.close();
+
+      return resultados.affectedRows! > 0;
+    } catch (e) {
+      print("Erro ao cadastrar: $e");
+      return false;
+    }
+  }
+}
+
+// Convertido para StatefulWidget
+class Cadastro extends StatefulWidget {
   const Cadastro({super.key});
+
+  @override
+  State<Cadastro> createState() => _CadastroState();
+}
+
+class _CadastroState extends State<Cadastro> {
+  // Controllers mantidos dentro da classe do estado
+  final TextEditingController controllerUsu = TextEditingController();
+  final TextEditingController controllerSenha = TextEditingController();
+  final TextEditingController controllerEmail = TextEditingController();
+
+  // Função para executar o cadastro
+  void cadastrar() async {
+    String usuarioDig = controllerUsu.text;
+    String senhaDig = controllerSenha.text;
+    String emailDig = controllerEmail.text;
+
+    if (usuarioDig.isEmpty || senhaDig.isEmpty || emailDig.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Preencha todos os campos!')));
+      return;
+    }
+
+    bool cadastradoValido = await AuthService.cadastrarUsuario(
+      usuarioDig,
+      senhaDig,
+      emailDig,
+    );
+
+    if (cadastradoValido) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Usuário cadastrado com sucesso!')));
+
+      // Navega para a tela principal (Entrada)
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const Entrada(),
+        ),
+      );
+    } else {
+      print('Algo deu errado ao cadastrar, desculpe.');
+    }
+  }
 
   @override
   Widget build(BuildContext contexto) {
@@ -35,6 +102,7 @@ class Cadastro extends StatelessWidget {
                 const Text("Nome", style: TextStyle(color: Colors.white)),
                 const SizedBox(height: 8),
                 TextField(
+                  controller: controllerUsu, // Conectado!
                   style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(
                     hintText: "Nome de usuário",
@@ -52,6 +120,7 @@ class Cadastro extends StatelessWidget {
                 const Text("Email", style: TextStyle(color: Colors.white)),
                 const SizedBox(height: 8),
                 TextField(
+                  controller: controllerEmail, // Conectado!
                   style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(
                     hintText: "seuemail@exemplo.com",
@@ -69,6 +138,7 @@ class Cadastro extends StatelessWidget {
                 const Text("Senha", style: TextStyle(color: Colors.white)),
                 const SizedBox(height: 8),
                 TextField(
+                  controller: controllerSenha, // Conectado!
                   obscureText: true,
                   style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(
@@ -84,7 +154,7 @@ class Cadastro extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 10),
-                Align(
+                const Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
                     "Essas informações vão ser usadas para você acessar o App, grave bem.",
@@ -105,7 +175,7 @@ class Cadastro extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    onPressed: () {},
+                    onPressed: cadastrar, // Chamando a função cadastrar!
                     child: const Text(
                       "Criar",
                       style: TextStyle(

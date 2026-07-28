@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:primeiro_app/pages/login.dart';
 
+import 'bancoDados/conect.dart';
+
 void main() {
+  ConexaoMysql.obterConexao();
   runApp(const MyApp());
 }
 

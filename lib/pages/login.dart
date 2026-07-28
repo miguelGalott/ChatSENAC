@@ -1,9 +1,61 @@
 import 'package:flutter/material.dart';
+import 'package:mysql1/mysql1.dart';
+import 'package:primeiro_app/bancoDados/conect.dart';
 import 'criar.dart';
 import 'pessoas.dart';
 
-class Login extends StatelessWidget {
+class AuthService {
+  static Future<bool> validarLogin(String usu, String senha) async {
+    try {
+      var conn = await ConexaoMysql.obterConexao();
+
+      var resultados = await conn.query(
+        'SELECT ID FROM USUAARIOS WHERE NOME = ? AND SENHA = ?',
+        [usu, senha],
+      );
+      await conn.close();
+
+      return resultados.isNotEmpty;
+    } catch (e) {
+      print('Erro ao validar Sorry: $e');
+      return false;
+    }
+  }
+}
+
+
+class Login extends StatefulWidget {
   const Login({super.key});
+
+  @override
+  State<Login> createState() => _LoginState();
+}
+
+class _LoginState extends State<Login> {
+  // 1. Criamos os controllers para ler os textos digitados
+  final TextEditingController controllerUsu = TextEditingController();
+  final TextEditingController controllerSenha = TextEditingController();
+
+  //  Função de autenticação bem ajustada
+  void autenticar() async {
+    String usuarioDig = controllerUsu.text;
+    String senhaDig = controllerSenha.text;
+
+    bool loginValido = await AuthService.validarLogin(usuarioDig, senhaDig);
+
+    if (loginValido) {
+      if (!mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const Entrada(),
+        ),
+      );
+    } else {
+      print('Algo esta errado desculpe');
+      // Opcional: Aqui você pode colocar um SnackBar ou Alerta avisando o usuário na tela!
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,9 +86,11 @@ class Login extends StatelessWidget {
                 const Text("Email", style: TextStyle(color: Colors.white)),
                 const SizedBox(height: 8),
                 TextField(
-                  style: TextStyle(color: Colors.white),
+                  controller: controllerUsu, // Conectado aqui!
+                  style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(
                     hintText: "Dantesoufoda@exemplo.com",
+                    hintStyle: const TextStyle(color: Colors.white38),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -46,10 +100,12 @@ class Login extends StatelessWidget {
                 const Text("Senha:", style: TextStyle(color: Colors.white)),
                 const SizedBox(height: 8),
                 TextField(
-                  style: TextStyle(color: Colors.white),
+                  controller: controllerSenha,
+                  style: const TextStyle(color: Colors.white),
                   obscureText: true,
                   decoration: InputDecoration(
                     hintText: "••••••••",
+                    hintStyle: const TextStyle(color: Colors.white38),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -77,14 +133,7 @@ class Login extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const Entrada(),
-                        ),
-                      );
-                    },
+                    onPressed: autenticar,
                     child: const Text(
                       "Entrar",
                       style: TextStyle(
