@@ -7,7 +7,6 @@ class ConexaoSqflite {
   static Future<Database> obterConexao() async {
     if (_db != null) return _db!;
 
-    // Pega o caminho onde o app pode salvar arquivos no celular
     String caminhoBanco = await getDatabasesPath();
     String path = join(caminhoBanco, 'meu_banco_local.db');
 

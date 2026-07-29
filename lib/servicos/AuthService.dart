@@ -42,6 +42,8 @@ class AuthService {
 
 
 
+
+
   static Future<void> listarMensagens() async {
     try {
       Database db = await ConexaoSqflite.obterConexao();
@@ -88,6 +90,21 @@ class AuthService {
       return id > 0;
     } catch (e) {
       print("Erro ao enviar mensagem: $e");
+      return false;
+    }
+  }
+  static Future<bool> atualizarSenha(String email, String novaSenha) async {
+    try {
+      Database db = await ConexaoSqflite.obterConexao();
+
+      int quantidadeLinhasAfetadas = await db.rawUpdate(
+        'UPDATE USUARIOS SET SENHA = ? WHERE EMAIL = ?',
+        [novaSenha, email],
+      );
+
+      return quantidadeLinhasAfetadas > 0;
+    } catch (e) {
+      print("Erro ao redefinir a senha: $e");
       return false;
     }
   }

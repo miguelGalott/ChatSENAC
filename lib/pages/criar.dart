@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:primeiro_app/bancoDados/conect.dart';
 import 'pessoas.dart';
@@ -14,14 +16,31 @@ class _CadastroState extends State<Cadastro> {
   final TextEditingController controllerUsu = TextEditingController();
   final TextEditingController controllerSenha = TextEditingController();
   final TextEditingController controllerEmail = TextEditingController();
-  final TextEditingController  controllerFoto = TextEditingController();
+
+
+  String? _caminhoFoto;
+  final ImagePicker _picker = ImagePicker();
+
   @override
   void dispose() {
     controllerUsu.dispose();
     controllerSenha.dispose();
     controllerEmail.dispose();
-    controllerFoto.dispose();
     super.dispose();
+  }
+
+
+  Future<void> _selecionarFotoDaGaleria() async {
+    final XFile? imagemSelecionada = await _picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 80,
+    );
+
+    if (imagemSelecionada != null) {
+      setState(() {
+        _caminhoFoto = imagemSelecionada.path;
+      });
+    }
   }
 
   static Future<bool> cadastrarUsuario(
@@ -38,7 +57,7 @@ class _CadastroState extends State<Cadastro> {
         [usu, senha, email, foto],
       );
 
-      print("Usuário cadastrado no SQLite com ID: $idGerado");
+      print("Usuário cadastrado com sucesso! ID: $idGerado");
       return idGerado > 0;
     } catch (e) {
       print("Erro ao cadastrar no SQLite: $e");
@@ -50,11 +69,13 @@ class _CadastroState extends State<Cadastro> {
     String usuarioDig = controllerUsu.text;
     String senhaDig = controllerSenha.text;
     String emailDig = controllerEmail.text;
-    String fotoDig = controllerFoto.text;
 
-    if (usuarioDig.isEmpty || senhaDig.isEmpty || emailDig.isEmpty || fotoDig.isEmpty) {
+
+    String fotoParaSalvar = _caminhoFoto ?? "";
+
+    if (usuarioDig.isEmpty || senhaDig.isEmpty || emailDig.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Preencha todos os campos!')),
+        const SnackBar(content: Text('Preencha os campos obrigatórios!')),
       );
       return;
     }
@@ -62,7 +83,8 @@ class _CadastroState extends State<Cadastro> {
     bool cadastradoValido = await cadastrarUsuario(
       usuarioDig,
       senhaDig,
-      emailDig, fotoDig,
+      emailDig,
+      fotoParaSalvar,
     );
 
     if (cadastradoValido) {
@@ -113,7 +135,39 @@ class _CadastroState extends State<Cadastro> {
                     style: TextStyle(color: Colors.white70),
                   ),
                 ),
-                const SizedBox(height: 30),
+                const SizedBox(height: 20),
+
+                // Seletor de foto redondo
+                Center(
+                  child: GestureDetector(
+                    onTap: _selecionarFotoDaGaleria,
+                    child: CircleAvatar(
+                      radius: 45,
+                      backgroundColor: Colors.grey[800],
+                      backgroundImage: _caminhoFoto != null
+                          ? FileImage(File(_caminhoFoto!))
+                          : null,
+                      child: _caminhoFoto == null
+                          ? const Icon(
+                        Icons.add_a_photo,
+                        color: Colors.white,
+                        size: 30,
+                      )
+                          : null,
+                    ),
+                  ),
+                ),
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.only(top: 8.0),
+                    child: Text(
+                      "Toque para selecionar foto (opcional)",
+                      style: TextStyle(color: Colors.white54, fontSize: 12),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 20),
                 const Text("Nome", style: TextStyle(color: Colors.white)),
                 const SizedBox(height: 8),
                 TextField(
@@ -168,36 +222,8 @@ class _CadastroState extends State<Cadastro> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 10),
-                const Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    "Essas informações vão ser usadas para você acessar o App, grave bem.",
-                    style: TextStyle(
-                      color: Colors.white60,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                const Text("Foto", style: TextStyle(color: Colors.white)),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: controllerFoto,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    hintText: "URL da foto (opcional",
-                    hintStyle: const TextStyle(color: Colors.white38),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Colors.grey),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 40),
+
+                const SizedBox(height: 30),
                 SizedBox(
                   width: double.infinity,
                   height: 50,
@@ -213,34 +239,6 @@ class _CadastroState extends State<Cadastro> {
                       "Criar",
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                const Center(
-                  child: Text("Ou", style: TextStyle(color: Colors.white60)),
-                ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey[400],
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    onPressed: () {
-                      Navigator.pop(contexto);
-                    },
-                    child: const Text(
-                      "Voltar",
-                      style: TextStyle(
-                        color: Colors.black,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),

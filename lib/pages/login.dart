@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:primeiro_app/bancoDados/conect.dart';
 import 'criar.dart';
+import 'esqueci_senha.dart';
 import 'pessoas.dart';
 
 class AuthService {
@@ -110,11 +111,21 @@ class _LoginState extends State<Login> {
                 const SizedBox(height: 10),
                 Align(
                   alignment: Alignment.centerRight,
-                  child: Text(
-                    "Esqueceu a senha?",
-                    style: TextStyle(
-                      color: Colors.blue[400],
-                      fontWeight: FontWeight.w500,
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const EsqueciSenha(),
+                        ),
+                      );
+                    },
+                    child: Text(
+                      "Esqueceu a senha?",
+                      style: TextStyle(
+                        color: Colors.blue[400],
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                 ),

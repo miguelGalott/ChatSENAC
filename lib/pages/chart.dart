@@ -47,14 +47,14 @@ class _ChatState extends State<Chat> {
 
     bool sucesso = await AuthService.cadastrarMensagem(
       conteudo,
-      widget.idUsuarioDestino, // PARA
-      widget.meuId,            // DE
+      widget.idUsuarioDestino,
+      widget.meuId,
     );
 
     if (sucesso) {
       _mensagemController.clear();
       setState(() {
-        // Recarrega as mensagens do banco de dados na tela
+        // Recarrega as mensagens do banco de dados na tela, trem insuportavel de fazer
         _carregarMensagens();
       });
     } else {
@@ -94,7 +94,7 @@ class _ChatState extends State<Chat> {
                 if (!snapshot.hasData || snapshot.data!.isEmpty) {
                   return const Center(
                     child: Text(
-                      "Nenhuma mensagem ainda...",
+                      "Nenhuma mensagem ainda... Poxa :(",
                       style: TextStyle(color: Colors.grey),
                     ),
                   );
@@ -107,7 +107,6 @@ class _ChatState extends State<Chat> {
                   itemCount: mensagens.length,
                   itemBuilder: (context, index) {
                     final msg = mensagens[index];
-                    // Identifica se a mensagem foi enviada por mim ou pela outra pessoa
                     bool souEu = msg['DE'] == widget.meuId;
 
                     return Align(

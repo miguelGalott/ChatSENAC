@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:primeiro_app/pages/login.dart';
-
 import 'bancoDados/conect.dart';
 
 Future<void> main() async {

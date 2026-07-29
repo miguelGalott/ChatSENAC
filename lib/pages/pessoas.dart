@@ -1,11 +1,8 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:primeiro_app/servicos/AuthService.dart' ;
-import 'package:primeiro_app/bancoDados/conect.dart';
-import 'package:sqflite/sqflite.dart';
+import 'package:primeiro_app/servicos/AuthService.dart';
 import 'chart.dart';
 import 'criar.dart';
-
-
 
 class Entrada extends StatefulWidget {
   const Entrada({super.key});
@@ -15,13 +12,38 @@ class Entrada extends StatefulWidget {
 }
 
 class _EntradaState extends State<Entrada> {
-
   late Future<List<Map<String, dynamic>>> _futureUsuarios;
 
   @override
   void initState() {
     super.initState();
     _futureUsuarios = AuthService.listarUsuarios();
+  }
+
+  Widget _construirImagemPerfil(String caminhoFoto) {
+    if (caminhoFoto.isEmpty) {
+      return const Icon(Icons.person, color: Colors.white, size: 40);
+    }
+
+    if (caminhoFoto.startsWith('http://') || caminhoFoto.startsWith('https://')) {
+      return Image.network(
+        caminhoFoto,
+        width: 40,
+        height: 40,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) =>
+        const Icon(Icons.person, color: Colors.white),
+      );
+    }
+
+    return Image.file(
+      File(caminhoFoto),
+      width: 40,
+      height: 40,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) =>
+      const Icon(Icons.person, color: Colors.white),
+    );
   }
 
   @override
@@ -59,19 +81,16 @@ class _EntradaState extends State<Entrada> {
         child: Column(
           children: [
             const SizedBox(height: 12),
-
             Expanded(
               child: FutureBuilder<List<Map<String, dynamic>>>(
                 future: _futureUsuarios,
                 builder: (context, snapshot) {
-                  // Enquanto estiver buscando os dados no SQLite:
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(
                       child: CircularProgressIndicator(color: Colors.blue),
                     );
                   }
 
-                  // Se não houver nenhum usuário cadastrado ainda:
                   if (!snapshot.hasData || snapshot.data!.isEmpty) {
                     return const Center(
                       child: Text(
@@ -83,14 +102,12 @@ class _EntradaState extends State<Entrada> {
 
                   final usuarios = snapshot.data!;
 
-                  // Renderiza a lista de botões com os usuários reais
                   return ListView.builder(
                     itemCount: usuarios.length,
                     itemBuilder: (context, index) {
                       final usuario = usuarios[index];
                       final String nomeUsuario = usuario['NOME'] ?? 'Usuário';
-                      final String fotoPerfil = usuario['FOTO_PERFIL'] ??
-                          'https://thumbs.dreamstime.com/b/vetor-de-%C3%ADcone-perfil-do-avatar-padr%C3%A3o-foto-usu%C3%A1rio-m%C3%ADdia-social-183042379.jpg';
+                      final String fotoPerfil = usuario['FOTO'] ?? '';
 
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 12.0),
@@ -108,9 +125,11 @@ class _EntradaState extends State<Entrada> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => Chat(nome: nomeUsuario,
+                                  builder: (context) => Chat(
+                                    nome: nomeUsuario,
                                     idUsuarioDestino: usuario['ID'],
-                                    meuId: 1,),
+                                    meuId: 1,
+                                  ),
                                 ),
                               );
                             },
@@ -118,14 +137,7 @@ class _EntradaState extends State<Entrada> {
                               children: [
                                 ClipRRect(
                                   borderRadius: BorderRadius.circular(100),
-                                  child: Image.network(
-                                    fotoPerfil,
-                                    width: 40,
-                                    height: 40,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) =>
-                                    const Icon(Icons.person, color: Colors.white),
-                                  ),
+                                  child: _construirImagemPerfil(fotoPerfil),
                                 ),
                                 const SizedBox(width: 12),
                                 Text(
@@ -146,9 +158,7 @@ class _EntradaState extends State<Entrada> {
                 },
               ),
             ),
-
             const SizedBox(height: 12),
-
             SizedBox(
               width: double.infinity,
               height: 50,
@@ -180,9 +190,7 @@ class _EntradaState extends State<Entrada> {
                 ),
               ),
             ),
-
             const SizedBox(height: 12),
-
             const Text(
               "Se não tiver um por favor crie",
               style: TextStyle(
