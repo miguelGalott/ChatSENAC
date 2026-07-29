@@ -1,29 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:sqflite/sqflite.dart';
 import 'package:primeiro_app/bancoDados/conect.dart';
 import 'pessoas.dart';
 
-class AuthService {
-
-  static Future<bool> cadastrarUsuario(String usu, String senha, String email) async {
-    try {
-      var conn = await ConexaoMysql.obterConexao();
-
-      var resultados = await conn.query(
-        'INSERT INTO USUARIOS (NOME, SENHA, EMAIL) VALUES (?, ?, ?)',
-        [usu, senha, email],
-      );
-
-      await conn.close();
-
-      return resultados.affectedRows! > 0;
-    } catch (e) {
-      print("Erro ao cadastrar: $e");
-      return false;
-    }
-  }
-}
-
-// Convertido para StatefulWidget
 class Cadastro extends StatefulWidget {
   const Cadastro({super.key});
 
@@ -32,41 +11,77 @@ class Cadastro extends StatefulWidget {
 }
 
 class _CadastroState extends State<Cadastro> {
-  // Controllers mantidos dentro da classe do estado
   final TextEditingController controllerUsu = TextEditingController();
   final TextEditingController controllerSenha = TextEditingController();
   final TextEditingController controllerEmail = TextEditingController();
+  final TextEditingController  controllerFoto = TextEditingController();
+  @override
+  void dispose() {
+    controllerUsu.dispose();
+    controllerSenha.dispose();
+    controllerEmail.dispose();
+    controllerFoto.dispose();
+    super.dispose();
+  }
 
-  // Função para executar o cadastro
+  static Future<bool> cadastrarUsuario(
+      String usu,
+      String senha,
+      String email,
+      String foto,
+      ) async {
+    try {
+      Database db = await ConexaoSqflite.obterConexao();
+
+      int idGerado = await db.rawInsert(
+        'INSERT INTO USUARIOS (NOME, SENHA, EMAIL, FOTO) VALUES (?, ?, ?, ?)',
+        [usu, senha, email, foto],
+      );
+
+      print("Usuário cadastrado no SQLite com ID: $idGerado");
+      return idGerado > 0;
+    } catch (e) {
+      print("Erro ao cadastrar no SQLite: $e");
+      return false;
+    }
+  }
+
   void cadastrar() async {
     String usuarioDig = controllerUsu.text;
     String senhaDig = controllerSenha.text;
     String emailDig = controllerEmail.text;
+    String fotoDig = controllerFoto.text;
 
-    if (usuarioDig.isEmpty || senhaDig.isEmpty || emailDig.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Preencha todos os campos!')));
+    if (usuarioDig.isEmpty || senhaDig.isEmpty || emailDig.isEmpty || fotoDig.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Preencha todos os campos!')),
+      );
       return;
     }
 
-    bool cadastradoValido = await AuthService.cadastrarUsuario(
+    bool cadastradoValido = await cadastrarUsuario(
       usuarioDig,
       senhaDig,
-      emailDig,
+      emailDig, fotoDig,
     );
 
     if (cadastradoValido) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Usuário cadastrado com sucesso!')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Usuário cadastrado com sucesso!')),
+      );
 
-      // Navega para a tela principal (Entrada)
       Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (context) => const Entrada(),
-        ),
+        MaterialPageRoute(builder: (context) => const Entrada()),
       );
     } else {
-      print('Algo deu errado ao cadastrar, desculpe.');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Algo deu errado ao cadastrar, desculpe.'),
+        ),
+      );
     }
   }
 
@@ -102,7 +117,7 @@ class _CadastroState extends State<Cadastro> {
                 const Text("Nome", style: TextStyle(color: Colors.white)),
                 const SizedBox(height: 8),
                 TextField(
-                  controller: controllerUsu, // Conectado!
+                  controller: controllerUsu,
                   style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(
                     hintText: "Nome de usuário",
@@ -120,7 +135,7 @@ class _CadastroState extends State<Cadastro> {
                 const Text("Email", style: TextStyle(color: Colors.white)),
                 const SizedBox(height: 8),
                 TextField(
-                  controller: controllerEmail, // Conectado!
+                  controller: controllerEmail,
                   style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(
                     hintText: "seuemail@exemplo.com",
@@ -138,7 +153,7 @@ class _CadastroState extends State<Cadastro> {
                 const Text("Senha", style: TextStyle(color: Colors.white)),
                 const SizedBox(height: 8),
                 TextField(
-                  controller: controllerSenha, // Conectado!
+                  controller: controllerSenha,
                   obscureText: true,
                   style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(
@@ -164,6 +179,24 @@ class _CadastroState extends State<Cadastro> {
                     ),
                   ),
                 ),
+                const SizedBox(height: 10),
+                const Text("Foto", style: TextStyle(color: Colors.white)),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: controllerFoto,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    hintText: "URL da foto (opcional",
+                    hintStyle: const TextStyle(color: Colors.white38),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Colors.grey),
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 40),
                 SizedBox(
                   width: double.infinity,
@@ -175,7 +208,7 @@ class _CadastroState extends State<Cadastro> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    onPressed: cadastrar, // Chamando a função cadastrar!
+                    onPressed: cadastrar,
                     child: const Text(
                       "Criar",
                       style: TextStyle(

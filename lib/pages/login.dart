@@ -1,28 +1,27 @@
 import 'package:flutter/material.dart';
-import 'package:mysql1/mysql1.dart';
+import 'package:sqflite/sqflite.dart';
 import 'package:primeiro_app/bancoDados/conect.dart';
 import 'criar.dart';
 import 'pessoas.dart';
 
 class AuthService {
-  static Future<bool> validarLogin(String usu, String senha) async {
-    try {
-      var conn = await ConexaoMysql.obterConexao();
 
-      var resultados = await conn.query(
-        'SELECT ID FROM USUAARIOS WHERE NOME = ? AND SENHA = ?',
-        [usu, senha],
+  static Future<bool> validarLogin(String email, String senha) async {
+    try {
+      Database db = await ConexaoSqflite.obterConexao();
+
+      List<Map<String, dynamic>> resultados = await db.rawQuery(
+        'SELECT ID FROM USUARIOS WHERE EMAIL = ? AND SENHA = ?',
+        [email, senha],
       );
-      await conn.close();
 
       return resultados.isNotEmpty;
     } catch (e) {
-      print('Erro ao validar Sorry: $e');
+      print("Erro ao validar login no SQLite: $e");
       return false;
     }
   }
 }
-
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -32,11 +31,9 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
-  // 1. Criamos os controllers para ler os textos digitados
   final TextEditingController controllerUsu = TextEditingController();
   final TextEditingController controllerSenha = TextEditingController();
 
-  //  Função de autenticação bem ajustada
   void autenticar() async {
     String usuarioDig = controllerUsu.text;
     String senhaDig = controllerSenha.text;
@@ -52,8 +49,7 @@ class _LoginState extends State<Login> {
         ),
       );
     } else {
-      print('Algo esta errado desculpe');
-      // Opcional: Aqui você pode colocar um SnackBar ou Alerta avisando o usuário na tela!
+      print('Algo está errado, desculpe.');
     }
   }
 
@@ -86,7 +82,7 @@ class _LoginState extends State<Login> {
                 const Text("Email", style: TextStyle(color: Colors.white)),
                 const SizedBox(height: 8),
                 TextField(
-                  controller: controllerUsu, // Conectado aqui!
+                  controller: controllerUsu,
                   style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(
                     hintText: "Dantesoufoda@exemplo.com",
