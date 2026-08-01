@@ -49,7 +49,7 @@ class _EsqueciSenhaState extends State<EsqueciSenha> {
           content: Text('Senha alterada com sucesso! Faça login.'),
         ),
       );
-      Navigator.pop(context); // Volta para a tela de login
+      Navigator.pop(context);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

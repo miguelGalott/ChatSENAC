@@ -127,6 +127,8 @@ class _EntradaState extends State<Entrada> {
                                 MaterialPageRoute(
                                   builder: (context) => Chat(
                                     nome: nomeUsuario,
+
+                                    foto: fotoPerfil,
                                     idUsuarioDestino: usuario['ID'],
                                     meuId: 1,
                                   ),

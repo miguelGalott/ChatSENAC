@@ -5,12 +5,14 @@ class Chat extends StatefulWidget {
   final String nome;
   final int idUsuarioDestino;
   final int meuId;
+  final String? foto;
 
   const Chat({
     super.key,
     required this.nome,
     required this.idUsuarioDestino,
     required this.meuId,
+    this.foto,
   });
 
   @override
@@ -24,14 +26,23 @@ class _ChatState extends State<Chat> {
   @override
   void initState() {
     super.initState();
+    _abrirChat();
+  }
+
+  // Ao abrir a tela: marca como visto tudo que o outro me mandou,
+  // e só DEPOIS carrega a lista (assim ela já vem atualizada).
+  void _abrirChat() async {
+    await AuthService.marcarComoVisto(widget.meuId, widget.idUsuarioDestino);
     _carregarMensagens();
   }
 
   void _carregarMensagens() {
-    _futureMensagens = AuthService.buscarMensagens(
-      widget.meuId,
-      widget.idUsuarioDestino,
-    );
+    setState(() {
+      _futureMensagens = AuthService.buscarMensagens(
+        widget.meuId,
+        widget.idUsuarioDestino,
+      );
+    });
   }
 
   @override
@@ -47,16 +58,13 @@ class _ChatState extends State<Chat> {
 
     bool sucesso = await AuthService.cadastrarMensagem(
       conteudo,
-      widget.idUsuarioDestino,
       widget.meuId,
+      widget.idUsuarioDestino,
     );
 
     if (sucesso) {
       _mensagemController.clear();
-      setState(() {
-        // Recarrega as mensagens do banco de dados na tela, trem insuportavel de fazer
-        _carregarMensagens();
-      });
+      _carregarMensagens();
     } else {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -70,12 +78,25 @@ class _ChatState extends State<Chat> {
     return Scaffold(
       backgroundColor: Colors.black87,
       appBar: AppBar(
-        title: Text(
-          widget.nome,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
+        title: Row(
+          children: [
+            if (widget.foto != null && widget.foto!.isNotEmpty)
+              CircleAvatar(
+                radius: 16,
+                backgroundImage: widget.foto!.startsWith('http')
+                    ? NetworkImage(widget.foto!)
+                    : AssetImage(widget.foto!) as ImageProvider,
+              ),
+            if (widget.foto != null && widget.foto!.isNotEmpty)
+              const SizedBox(width: 10),
+            Text(
+              widget.nome,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
         ),
         backgroundColor: Colors.blue,
       ),
@@ -108,26 +129,70 @@ class _ChatState extends State<Chat> {
                   itemBuilder: (context, index) {
                     final msg = mensagens[index];
                     bool souEu = msg['DE'] == widget.meuId;
+                    final String horario = (msg['HORARIO'] ?? '').toString();
+                    final String estado = (msg['ESTADO'] ?? 'ENVIADO').toString();
 
                     return Align(
-                      alignment: souEu ? Alignment.centerRight : Alignment.centerLeft,
-                      child: Container(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 10,
-                        ),
-                        decoration: BoxDecoration(
-                          color: souEu ? Colors.blue[600] : Colors.grey[800],
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          msg['CONTEUDO'] ?? '',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            color: Colors.white,
+                      alignment:
+                      souEu ? Alignment.centerRight : Alignment.centerLeft,
+                      child: Column(
+                        crossAxisAlignment: souEu
+                            ? CrossAxisAlignment.end
+                            : CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            margin: const EdgeInsets.only(bottom: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 10,
+                            ),
+                            decoration: BoxDecoration(
+                              color: souEu ? Colors.blue[600] : Colors.grey[800],
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              msg['CONTEUDO'] ?? '',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                color: Colors.white,
+                              ),
+                            ),
                           ),
-                        ),
+                          Padding(
+                            padding: const EdgeInsets.only(
+                              bottom: 10,
+                              left: 4,
+                              right: 4,
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (horario.isNotEmpty)
+                                  Text(
+                                    _formatarHorario(horario),
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.white38,
+                                    ),
+                                  ),
+                                // O "vistinho" só faz sentido nas mensagens
+                                // que EU mandei (souEu == true)
+                                if (souEu) ...[
+                                  const SizedBox(width: 4),
+                                  Icon(
+                                    estado == 'VISTO'
+                                        ? Icons.done_all
+                                        : Icons.done,
+                                    size: 14,
+                                    color: estado == 'VISTO'
+                                        ? Colors.blue[300]
+                                        : Colors.white38,
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     );
                   },
@@ -167,5 +232,15 @@ class _ChatState extends State<Chat> {
         ],
       ),
     );
+  }
+
+  String _formatarHorario(String horarioBanco) {
+    try {
+      final partes = horarioBanco.split(' ');
+      if (partes.length < 2) return horarioBanco;
+      return partes[1].substring(0, 5); // "14:32"
+    } catch (e) {
+      return horarioBanco;
+    }
   }
 }

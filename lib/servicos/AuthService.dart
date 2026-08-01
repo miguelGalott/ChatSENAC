@@ -16,11 +16,8 @@ class AuthService {
   }
 
 
-
-
-
-
-  static Future<bool> cadastrarUsuario(String usu, String senha, String email, String foto) async {
+  static Future<bool> cadastrarUsuario(String usu, String senha, String email,
+      String foto) async {
     try {
       Database db = await ConexaoSqflite.obterConexao();
 
@@ -39,21 +36,18 @@ class AuthService {
   }
 
 
-
-
-
-
-
   static Future<void> listarMensagens() async {
     try {
       Database db = await ConexaoSqflite.obterConexao();
 
 
-      List<Map<String, dynamic>> mensagens = await db.rawQuery('SELECT * FROM MENSAGENS');
+      List<Map<String, dynamic>> mensagens = await db.rawQuery(
+          'SELECT * FROM MENSAGENS');
 
       print(" MENSAGENS NO BANCO ---");
       for (var m in mensagens) {
-        print("ID: ${m['ID']} | De: ${m['DE']} -> Para: ${m['PARA']} | Conteúdo: ${m['CONTEUDO']} | Horário: ${m['HORARIO']}");
+        print(
+            "ID: ${m['ID']} | De: ${m['DE']} -> Para: ${m['PARA']} | Conteúdo: ${m['CONTEUDO']} | Horário: ${m['HORARIO']}");
       }
       print("----------------------------");
     } catch (e) {
@@ -62,7 +56,8 @@ class AuthService {
   }
 
 
-  static Future<List<Map<String, dynamic>>> buscarMensagens(int meuId, int outroId) async {
+  static Future<List<Map<String, dynamic>>> buscarMensagens(int meuId,
+      int outroId) async {
     try {
       Database db = await ConexaoSqflite.obterConexao();
       return await db.rawQuery('''
@@ -76,16 +71,13 @@ class AuthService {
     }
   }
 
-
-
-
-
-  static Future<bool> cadastrarMensagem(String conteudo, int deId, int paraId) async {
+  static Future<bool> cadastrarMensagem(String conteudo, int deId,
+      int paraId) async {
     try {
       Database db = await ConexaoSqflite.obterConexao();
       int id = await db.rawInsert(
-        'INSERT INTO MENSAGENS (CONTEUDO, DE, PARA) VALUES (?, ?, ?)',
-        [conteudo, deId, paraId],
+        'INSERT INTO MENSAGENS (CONTEUDO, DE, PARA, ESTADO) VALUES (?, ?, ?, ?)',
+        [conteudo, deId, paraId, 'ENVIADO MAS NÃO VISTO'],
       );
       return id > 0;
     } catch (e) {
@@ -93,6 +85,7 @@ class AuthService {
       return false;
     }
   }
+
   static Future<bool> atualizarSenha(String email, String novaSenha) async {
     try {
       Database db = await ConexaoSqflite.obterConexao();
@@ -108,6 +101,21 @@ class AuthService {
       return false;
     }
   }
-}
 
+  static Future<void> marcarComoVisto(int meuId, int outroId) async {
+    try {
+      Database db = await ConexaoSqflite.obterConexao();
+      await db.rawUpdate(
+        '''
+        UPDATE MENSAGENS 
+        SET ESTADO = 'VISTO' 
+        WHERE DE = ? AND PARA = ? AND ESTADO != 'VISTO'
+        ''',
+        [outroId, meuId],
+      );
+    } catch (e) {
+      print("Erro ao marcar mensagens como vistas: $e");
+    }
+  }
+}
 

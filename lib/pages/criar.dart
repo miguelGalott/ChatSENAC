@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:primeiro_app/bancoDados/conect.dart';
-import 'pessoas.dart';
 
 class Cadastro extends StatefulWidget {
   const Cadastro({super.key});
@@ -16,7 +15,7 @@ class _CadastroState extends State<Cadastro> {
   final TextEditingController controllerUsu = TextEditingController();
   final TextEditingController controllerSenha = TextEditingController();
   final TextEditingController controllerEmail = TextEditingController();
-
+  final TextEditingController controllerFoto = TextEditingController();
 
   String? _caminhoFoto;
   final ImagePicker _picker = ImagePicker();
@@ -26,9 +25,9 @@ class _CadastroState extends State<Cadastro> {
     controllerUsu.dispose();
     controllerSenha.dispose();
     controllerEmail.dispose();
+    controllerFoto.dispose();
     super.dispose();
   }
-
 
   Future<void> _selecionarFotoDaGaleria() async {
     final XFile? imagemSelecionada = await _picker.pickImage(
@@ -39,6 +38,7 @@ class _CadastroState extends State<Cadastro> {
     if (imagemSelecionada != null) {
       setState(() {
         _caminhoFoto = imagemSelecionada.path;
+        controllerFoto.text = imagemSelecionada.path;
       });
     }
   }
@@ -66,12 +66,10 @@ class _CadastroState extends State<Cadastro> {
   }
 
   void cadastrar() async {
-    String usuarioDig = controllerUsu.text;
-    String senhaDig = controllerSenha.text;
-    String emailDig = controllerEmail.text;
-
-
-    String fotoParaSalvar = _caminhoFoto ?? "";
+    String usuarioDig = controllerUsu.text.trim();
+    String senhaDig = controllerSenha.text.trim();
+    String emailDig = controllerEmail.text.trim();
+    String fotoParaSalvar = controllerFoto.text.trim();
 
     if (usuarioDig.isEmpty || senhaDig.isEmpty || emailDig.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -93,10 +91,8 @@ class _CadastroState extends State<Cadastro> {
         const SnackBar(content: Text('Usuário cadastrado com sucesso!')),
       );
 
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const Entrada()),
-      );
+      // Fecha a tela atual e retorna para a tela anterior (Entrada)
+      Navigator.pop(context);
     } else {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -105,6 +101,10 @@ class _CadastroState extends State<Cadastro> {
         ),
       );
     }
+  }
+
+  bool _ehUrl(String caminho) {
+    return caminho.startsWith('http://') || caminho.startsWith('https://');
   }
 
   @override
@@ -137,17 +137,19 @@ class _CadastroState extends State<Cadastro> {
                 ),
                 const SizedBox(height: 20),
 
-                // Seletor de foto redondo
+                // Avatar da foto
                 Center(
                   child: GestureDetector(
                     onTap: _selecionarFotoDaGaleria,
                     child: CircleAvatar(
                       radius: 45,
                       backgroundColor: Colors.grey[800],
-                      backgroundImage: _caminhoFoto != null
-                          ? FileImage(File(_caminhoFoto!))
+                      backgroundImage: _caminhoFoto != null && _caminhoFoto!.isNotEmpty
+                          ? (_ehUrl(_caminhoFoto!)
+                          ? NetworkImage(_caminhoFoto!) as ImageProvider
+                          : FileImage(File(_caminhoFoto!)))
                           : null,
-                      child: _caminhoFoto == null
+                      child: _caminhoFoto == null || _caminhoFoto!.isEmpty
                           ? const Icon(
                         Icons.add_a_photo,
                         color: Colors.white,
@@ -157,12 +159,36 @@ class _CadastroState extends State<Cadastro> {
                     ),
                   ),
                 ),
+                const SizedBox(height: 12),
+
+
                 const Center(
-                  child: Padding(
-                    padding: EdgeInsets.only(top: 8.0),
-                    child: Text(
-                      "Toque para selecionar foto (opcional)",
-                      style: TextStyle(color: Colors.white54, fontSize: 12),
+                  child: Text(
+                    "Toque para selecionar foto ou insira o link HTTP da imagem",
+                    style: TextStyle(color: Colors.white54, fontSize: 12),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const SizedBox(height: 8),
+
+
+                TextField(
+                  controller: controllerFoto,
+                  style: const TextStyle(color: Colors.white),
+                  onChanged: (valor) {
+                    setState(() {
+                      _caminhoFoto = valor.isEmpty ? null : valor;
+                    });
+                  },
+                  decoration: InputDecoration(
+                    hintText: "Http:// ou caminho do arquivo",
+                    hintStyle: const TextStyle(color: Colors.white38),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Colors.grey),
                     ),
                   ),
                 ),
@@ -185,6 +211,7 @@ class _CadastroState extends State<Cadastro> {
                     ),
                   ),
                 ),
+
                 const SizedBox(height: 20),
                 const Text("Email", style: TextStyle(color: Colors.white)),
                 const SizedBox(height: 8),
@@ -203,6 +230,7 @@ class _CadastroState extends State<Cadastro> {
                     ),
                   ),
                 ),
+
                 const SizedBox(height: 20),
                 const Text("Senha", style: TextStyle(color: Colors.white)),
                 const SizedBox(height: 8),
@@ -223,20 +251,20 @@ class _CadastroState extends State<Cadastro> {
                   ),
                 ),
 
-                const SizedBox(height: 30),
+                const SizedBox(height: 90),
                 SizedBox(
                   width: double.infinity,
                   height: 50,
                   child: ElevatedButton(
+                    onPressed: cadastrar,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
+                      backgroundColor: Colors.blue,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    onPressed: cadastrar,
                     child: const Text(
-                      "Criar",
+                      "Cadastrar",
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 16,
@@ -245,7 +273,32 @@ class _CadastroState extends State<Cadastro> {
                     ),
                   ),
                 ),
+                const SizedBox(height: 40),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.grey[400],
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: const Text(
+                      "Voltar",
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
               ],
+
             ),
           ),
         ),
