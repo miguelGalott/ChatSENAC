@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:primeiro_app/servicos/AuthService.dart';
 import 'chart.dart';
 import 'criar.dart';
+import 'config.dart'; // Corrigido: adicionado ponto e vírgula
 
 class Entrada extends StatefulWidget {
   const Entrada({super.key});
@@ -52,6 +53,8 @@ class _EntradaState extends State<Entrada> {
       backgroundColor: Colors.black87,
       appBar: AppBar(
         toolbarHeight: 100,
+        backgroundColor: Colors.blue,
+        centerTitle: true,
         title: Column(
           children: const [
             Text(
@@ -66,15 +69,26 @@ class _EntradaState extends State<Entrada> {
             Text(
               "Por favor escolha um dos usuários abaixo para conversar",
               style: TextStyle(
-                color: Colors.white54,
+                color: Colors.white70,
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
               ),
             ),
           ],
         ),
-        centerTitle: true,
-        backgroundColor: Colors.blue,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings, color: Colors.white),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const Config(),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -127,7 +141,6 @@ class _EntradaState extends State<Entrada> {
                                 MaterialPageRoute(
                                   builder: (context) => Chat(
                                     nome: nomeUsuario,
-
                                     foto: fotoPerfil,
                                     idUsuarioDestino: usuario['ID'],
                                     meuId: 1,

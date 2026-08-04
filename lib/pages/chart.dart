@@ -130,7 +130,7 @@ class _ChatState extends State<Chat> {
                     final msg = mensagens[index];
                     bool souEu = msg['DE'] == widget.meuId;
                     final String horario = (msg['HORARIO'] ?? '').toString();
-                    final String estado = (msg['ESTADO'] ?? 'ENVIADO').toString();
+                    final String estado = (msg['ESTADO'] ?? 'ENVIADO MAS NÃO VISTO').toString();
 
                     return Align(
                       alignment:
@@ -175,8 +175,7 @@ class _ChatState extends State<Chat> {
                                       color: Colors.white38,
                                     ),
                                   ),
-                                // O "vistinho" só faz sentido nas mensagens
-                                // que EU mandei (souEu == true)
+
                                 if (souEu) ...[
                                   const SizedBox(width: 4),
                                   Icon(

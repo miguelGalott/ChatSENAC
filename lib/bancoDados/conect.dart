@@ -41,6 +41,26 @@ class ConexaoSqflite {
 
           
         ''');
+
+
+        await db.execute('''
+
+    CREATE TABLE MENSAGENSFOTO(
+       ID INTEGER PRIMARY KEY AUTOINCREMENT,
+       CONTEUDO TEXT NOT NULL,
+       HORARIO TEXT DEFAULT CURRENT_TIMESTAMP,
+       ESTADO TEXT DEFAULT 'ENVIANDO' CHECK (ESTADO IN ('VISTO', 'NÃO VISTO', 'ENVIANDO', 'ENVIADO MAS NÃO VISTO')),
+       PARA INTEGER NOT NULL,
+       DE INTEGER NOT NULL,
+       
+       FOREIGN KEY (PARA) REFERENCES USUARIOS(ID),
+       FOREIGN KEY (DE) REFERENCES USUARIOS(ID),
+       FOREIGN (ID) REFERENCES MENSAGENS(ID)
+);
+
+          
+        ''');
+
       },
     );
 
