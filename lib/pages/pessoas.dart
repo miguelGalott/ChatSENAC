@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:primeiro_app/servicos/AuthService.dart';
 import 'chart.dart';
 import 'criar.dart';
-import 'config.dart'; // Corrigido: adicionado ponto e vírgula
+import 'config.dart';
 
 class Entrada extends StatefulWidget {
-  const Entrada({super.key});
+  final int meuId; // ID do usuário que está logado
+
+  const Entrada({super.key, this.meuId = 1}); // Padrão 1 caso não seja informado
 
   @override
   State<Entrada> createState() => _EntradaState();
@@ -55,8 +57,8 @@ class _EntradaState extends State<Entrada> {
         toolbarHeight: 100,
         backgroundColor: Colors.blue,
         centerTitle: true,
-        title: Column(
-          children: const [
+        title: const Column(
+          children: [
             Text(
               "SenaChat",
               style: TextStyle(
@@ -83,7 +85,8 @@ class _EntradaState extends State<Entrada> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const Config(),
+                  // CORRIGIDO: Passando widget.meuId para a tela Config
+                  builder: (context) => Config(meuId: widget.meuId),
                 ),
               );
             },
@@ -143,7 +146,8 @@ class _EntradaState extends State<Entrada> {
                                     nome: nomeUsuario,
                                     foto: fotoPerfil,
                                     idUsuarioDestino: usuario['ID'],
-                                    meuId: 1,
+                                    // CORRIGIDO: Usando widget.meuId em vez do número fixo
+                                    meuId: widget.meuId,
                                   ),
                                 ),
                               );

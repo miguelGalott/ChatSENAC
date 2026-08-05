@@ -2,12 +2,9 @@ import 'package:sqflite/sqflite.dart';
 import 'package:primeiro_app/bancoDados/conect.dart';
 
 class AuthService {
-
-
   static Future<List<Map<String, dynamic>>> listarUsuarios() async {
     try {
       Database db = await ConexaoSqflite.obterConexao();
-
       return await db.rawQuery('SELECT ID, NOME, EMAIL, FOTO FROM USUARIOS');
     } catch (e) {
       print("Erro ao listar usuários no SQLite: $e");
@@ -15,12 +12,26 @@ class AuthService {
     }
   }
 
-
-  static Future<bool> cadastrarUsuario(String usu, String senha, String email,
-      String foto) async {
+  // Busca só 1 usuário pelo ID -- usada na tela de Perfil
+  static Future<Map<String, dynamic>?> buscarUsuarioPorId(int id) async {
     try {
       Database db = await ConexaoSqflite.obterConexao();
+      List<Map<String, dynamic>> resultado = await db.rawQuery(
+        'SELECT ID, NOME, EMAIL, FOTO FROM USUARIOS WHERE ID = ?',
+        [id],
+      );
+      if (resultado.isEmpty) return null;
+      return resultado.first;
+    } catch (e) {
+      print("Erro ao buscar usuário: $e");
+      return null;
+    }
+  }
 
+  static Future<bool> cadastrarUsuario(
+      String usu, String senha, String email, String foto) async {
+    try {
+      Database db = await ConexaoSqflite.obterConexao();
 
       int idGerado = await db.rawInsert(
         'INSERT INTO USUARIOS (NOME, SENHA, EMAIL, FOTO) VALUES (?, ?, ?, ?)',
@@ -35,14 +46,57 @@ class AuthService {
     }
   }
 
+  // Atualiza só o NOME do usuário
+  static Future<bool> atualizarNome(int id, String novoNome) async {
+    try {
+      Database db = await ConexaoSqflite.obterConexao();
+      int linhas = await db.rawUpdate(
+        'UPDATE USUARIOS SET NOME = ? WHERE ID = ?',
+        [novoNome, id],
+      );
+      return linhas > 0;
+    } catch (e) {
+      print("Erro ao atualizar nome: $e");
+      return false;
+    }
+  }
+
+  // Atualiza só o EMAIL do usuário
+  static Future<bool> atualizarEmail(int id, String novoEmail) async {
+    try {
+      Database db = await ConexaoSqflite.obterConexao();
+      int linhas = await db.rawUpdate(
+        'UPDATE USUARIOS SET EMAIL = ? WHERE ID = ?',
+        [novoEmail, id],
+      );
+      return linhas > 0;
+    } catch (e) {
+      print("Erro ao atualizar email: $e");
+      return false;
+    }
+  }
+
+  // Atualiza só a FOTO do usuário
+  static Future<bool> atualizarFoto(int id, String novaFoto) async {
+    try {
+      Database db = await ConexaoSqflite.obterConexao();
+      int linhas = await db.rawUpdate(
+        'UPDATE USUARIOS SET FOTO = ? WHERE ID = ?',
+        [novaFoto, id],
+      );
+      return linhas > 0;
+    } catch (e) {
+      print("Erro ao atualizar foto: $e");
+      return false;
+    }
+  }
 
   static Future<void> listarMensagens() async {
     try {
       Database db = await ConexaoSqflite.obterConexao();
 
-
-      List<Map<String, dynamic>> mensagens = await db.rawQuery(
-          'SELECT * FROM MENSAGENS');
+      List<Map<String, dynamic>> mensagens =
+      await db.rawQuery('SELECT * FROM MENSAGENS');
 
       print(" MENSAGENS NO BANCO ---");
       for (var m in mensagens) {
@@ -55,9 +109,8 @@ class AuthService {
     }
   }
 
-
-  static Future<List<Map<String, dynamic>>> buscarMensagens(int meuId,
-      int outroId) async {
+  static Future<List<Map<String, dynamic>>> buscarMensagens(
+      int meuId, int outroId) async {
     try {
       Database db = await ConexaoSqflite.obterConexao();
       return await db.rawQuery('''
@@ -71,18 +124,41 @@ class AuthService {
     }
   }
 
-  static Future<bool> cadastrarMensagem(String conteudo, int deId,
-      int paraId) async {
+  static Future<bool> cadastrarMensagem(
+      String conteudo, int deId, int paraId, {String? foto}) async {
     try {
       Database db = await ConexaoSqflite.obterConexao();
       int id = await db.rawInsert(
-        'INSERT INTO MENSAGENS (CONTEUDO, DE, PARA, ESTADO) VALUES (?, ?, ?, ?)',
-        [conteudo, deId, paraId, 'ENVIADO MAS NÃO VISTO'],
+        'INSERT INTO MENSAGENS (CONTEUDO, FOTO, DE, PARA, ESTADO) VALUES (?, ?, ?, ?, ?)',
+        [
+          conteudo.isEmpty ? null : conteudo,
+          foto,
+          deId,
+          paraId,
+          'ENVIADO MAS NÃO VISTO',
+        ],
       );
       return id > 0;
     } catch (e) {
       print("Erro ao enviar mensagem: $e");
       return false;
+    }
+  }
+
+
+  static Future<void> marcarComoVisto(int meuId, int outroId) async {
+    try {
+      Database db = await ConexaoSqflite.obterConexao();
+      await db.rawUpdate(
+        '''
+        UPDATE MENSAGENS 
+        SET ESTADO = 'VISTO' 
+        WHERE DE = ? AND PARA = ? AND ESTADO != 'VISTO'
+        ''',
+        [outroId, meuId],
+      );
+    } catch (e) {
+      print("Erro ao marcar mensagens como vistas: $e");
     }
   }
 
@@ -101,21 +177,4 @@ class AuthService {
       return false;
     }
   }
-
-  static Future<void> marcarComoVisto(int meuId, int outroId) async {
-    try {
-      Database db = await ConexaoSqflite.obterConexao();
-      await db.rawUpdate(
-        '''
-        UPDATE MENSAGENS 
-        SET ESTADO = 'VISTO' 
-        WHERE DE = ? AND PARA = ? AND ESTADO != 'VISTO'
-        ''',
-        [outroId, meuId],
-      );
-    } catch (e) {
-      print("Erro ao marcar mensagens como vistas: $e");
-    }
-  }
 }
-

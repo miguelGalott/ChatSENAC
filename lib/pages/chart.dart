@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:primeiro_app/servicos/AuthService.dart';
 
 class Chat extends StatefulWidget {
@@ -22,6 +24,8 @@ class Chat extends StatefulWidget {
 class _ChatState extends State<Chat> {
   final TextEditingController _mensagemController = TextEditingController();
   late Future<List<Map<String, dynamic>>> _futureMensagens;
+  final ImagePicker _picker = ImagePicker();
+  String? _fotoSelecionada; // guarda o caminho da foto escolhida, antes de enviar
 
   @override
   void initState() {
@@ -51,19 +55,37 @@ class _ChatState extends State<Chat> {
     super.dispose();
   }
 
+  Future<void> _selecionarFotoDaGaleria() async {
+    final XFile? imagemSelecionada = await _picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 80,
+    );
+
+    if (imagemSelecionada != null) {
+      setState(() {
+        _fotoSelecionada = imagemSelecionada.path;
+      });
+    }
+  }
+
   void _enviarMensagem() async {
     String conteudo = _mensagemController.text.trim();
 
-    if (conteudo.isEmpty) return;
+    // não deixa enviar mensagem totalmente vazia (sem texto E sem foto)
+    if (conteudo.isEmpty && _fotoSelecionada == null) return;
 
     bool sucesso = await AuthService.cadastrarMensagem(
       conteudo,
       widget.meuId,
       widget.idUsuarioDestino,
+      foto: _fotoSelecionada,
     );
 
     if (sucesso) {
       _mensagemController.clear();
+      setState(() {
+        _fotoSelecionada = null; // limpa a prévia depois de enviar
+      });
       _carregarMensagens();
     } else {
       if (!mounted) return;
@@ -131,6 +153,8 @@ class _ChatState extends State<Chat> {
                     bool souEu = msg['DE'] == widget.meuId;
                     final String horario = (msg['HORARIO'] ?? '').toString();
                     final String estado = (msg['ESTADO'] ?? 'ENVIADO MAS NÃO VISTO').toString();
+                    final String? fotoMsg = msg['FOTO'] as String?;
+                    final String conteudoMsg = (msg['CONTEUDO'] ?? '').toString();
 
                     return Align(
                       alignment:
@@ -146,16 +170,46 @@ class _ChatState extends State<Chat> {
                               horizontal: 14,
                               vertical: 10,
                             ),
+                            constraints: const BoxConstraints(maxWidth: 240),
                             decoration: BoxDecoration(
                               color: souEu ? Colors.blue[600] : Colors.grey[800],
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: Text(
-                              msg['CONTEUDO'] ?? '',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                color: Colors.white,
-                              ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (fotoMsg != null && fotoMsg.isNotEmpty)
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: fotoMsg.startsWith('http')
+                                        ? Image.network(
+                                      fotoMsg,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (c, e, s) =>
+                                      const Icon(Icons.broken_image,
+                                          color: Colors.white54),
+                                    )
+                                        : Image.file(
+                                      File(fotoMsg),
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (c, e, s) =>
+                                      const Icon(Icons.broken_image,
+                                          color: Colors.white54),
+                                    ),
+                                  ),
+                                if (fotoMsg != null &&
+                                    fotoMsg.isNotEmpty &&
+                                    conteudoMsg.isNotEmpty)
+                                  const SizedBox(height: 6),
+                                if (conteudoMsg.isNotEmpty)
+                                  Text(
+                                    conteudoMsg,
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                              ],
                             ),
                           ),
                           Padding(
@@ -175,7 +229,8 @@ class _ChatState extends State<Chat> {
                                       color: Colors.white38,
                                     ),
                                   ),
-
+                                // O "vistinho" só faz sentido nas mensagens
+                                // que EU mandei (souEu == true)
                                 if (souEu) ...[
                                   const SizedBox(width: 4),
                                   Icon(
@@ -199,6 +254,32 @@ class _ChatState extends State<Chat> {
               },
             ),
           ),
+          // Prévia da foto escolhida, antes de mandar
+          if (_fotoSelecionada != null)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Row(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.file(
+                      File(_fotoSelecionada!),
+                      width: 60,
+                      height: 60,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white54),
+                    onPressed: () {
+                      setState(() {
+                        _fotoSelecionada = null;
+                      });
+                    },
+                  ),
+                ],
+              ),
+            ),
           Padding(
             padding: const EdgeInsets.all(12.0),
             child: Container(
@@ -208,7 +289,11 @@ class _ChatState extends State<Chat> {
               ),
               child: Row(
                 children: [
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 4),
+                  IconButton(
+                    icon: const Icon(Icons.image, color: Colors.blue),
+                    onPressed: _selecionarFotoDaGaleria,
+                  ),
                   Expanded(
                     child: TextField(
                       controller: _mensagemController,
@@ -237,7 +322,7 @@ class _ChatState extends State<Chat> {
     try {
       final partes = horarioBanco.split(' ');
       if (partes.length < 2) return horarioBanco;
-      return partes[1].substring(0, 5); // "14:32"
+      return partes[1].substring(0, 5);
     } catch (e) {
       return horarioBanco;
     }

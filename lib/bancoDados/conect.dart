@@ -13,7 +13,7 @@ class ConexaoSqflite {
 
     _db = await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE USUARIOS (
@@ -29,7 +29,8 @@ class ConexaoSqflite {
 
     CREATE TABLE MENSAGENS(
        ID INTEGER PRIMARY KEY AUTOINCREMENT,
-       CONTEUDO TEXT NOT NULL,
+       CONTEUDO TEXT,
+       FOTO TEXT,
        HORARIO TEXT DEFAULT CURRENT_TIMESTAMP,
        ESTADO TEXT DEFAULT 'ENVIANDO' CHECK (ESTADO IN ('VISTO', 'NÃO VISTO', 'ENVIANDO', 'ENVIADO MAS NÃO VISTO')),
        PARA INTEGER NOT NULL,
@@ -41,26 +42,12 @@ class ConexaoSqflite {
 
           
         ''');
+      },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
 
-
-        await db.execute('''
-
-    CREATE TABLE MENSAGENSFOTO(
-       ID INTEGER PRIMARY KEY AUTOINCREMENT,
-       CONTEUDO TEXT NOT NULL,
-       HORARIO TEXT DEFAULT CURRENT_TIMESTAMP,
-       ESTADO TEXT DEFAULT 'ENVIANDO' CHECK (ESTADO IN ('VISTO', 'NÃO VISTO', 'ENVIANDO', 'ENVIADO MAS NÃO VISTO')),
-       PARA INTEGER NOT NULL,
-       DE INTEGER NOT NULL,
-       
-       FOREIGN KEY (PARA) REFERENCES USUARIOS(ID),
-       FOREIGN KEY (DE) REFERENCES USUARIOS(ID),
-       FOREIGN (ID) REFERENCES MENSAGENS(ID)
-);
-
-          
-        ''');
-
+          await db.execute('ALTER TABLE MENSAGENS ADD COLUMN FOTO TEXT');
+        }
       },
     );
 

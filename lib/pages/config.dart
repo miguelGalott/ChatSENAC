@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'perfil.dart';
+import 'login.dart';
 
 class Config extends StatefulWidget {
-  const Config({super.key});
+  final int meuId; // precisa vir de quem abriu essa tela (o usuário logado)
+
+  const Config({super.key, required this.meuId});
 
   @override
   State<Config> createState() => _ConfigState();
@@ -17,8 +20,8 @@ class _ConfigState extends State<Config> {
         toolbarHeight: 100,
         backgroundColor: Colors.blue,
         centerTitle: true,
-        title: Column(
-          children: const [
+        title: const Column(
+          children: [
             Text(
               "Configurações",
               style: TextStyle(
@@ -44,8 +47,7 @@ class _ConfigState extends State<Config> {
         child: Column(
           children: [
             const SizedBox(height: 12),
-
-
+            // Botão 1: Perfil
             SizedBox(
               width: double.infinity,
               height: 50,
@@ -60,7 +62,8 @@ class _ConfigState extends State<Config> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const Perfil(),
+                      // repassa o meuId que o Config recebeu
+                      builder: (context) => Perfil(meuId: widget.meuId),
                     ),
                   );
                 },
@@ -77,7 +80,7 @@ class _ConfigState extends State<Config> {
 
             const SizedBox(height: 12),
 
-
+            // Botão 2: Exemplo de botão funcional adicional (Tema)
             SizedBox(
               width: double.infinity,
               height: 50,
@@ -89,10 +92,10 @@ class _ConfigState extends State<Config> {
                   ),
                 ),
                 onPressed: () {
-                  //  Fazer função de mudar tema (Claro/Escuro)
+                  // Insira a ação desse botão aqui
                 },
                 child: const Text(
-                  "Mudar tema (Claro/Escuro)",
+                  "Tema / Opções",
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 16,
@@ -104,6 +107,7 @@ class _ConfigState extends State<Config> {
 
             const SizedBox(height: 12),
 
+            // Botão 3: Sair
             SizedBox(
               width: double.infinity,
               height: 50,
@@ -115,8 +119,13 @@ class _ConfigState extends State<Config> {
                   ),
                 ),
                 onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const Login(),
+                    ),
+                  );
 
-                  Navigator.pop(context);
                 },
                 child: const Text(
                   "Sair",

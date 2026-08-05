@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:primeiro_app/bancoDados/conect.dart';
+import 'package:primeiro_app/servicos/AuthService.dart';
 
 class Cadastro extends StatefulWidget {
   const Cadastro({super.key});
@@ -78,7 +79,7 @@ class _CadastroState extends State<Cadastro> {
       return;
     }
 
-    bool cadastradoValido = await cadastrarUsuario(
+    bool cadastradoValido = await AuthService.cadastrarUsuario(
       usuarioDig,
       senhaDig,
       emailDig,
@@ -91,7 +92,7 @@ class _CadastroState extends State<Cadastro> {
         const SnackBar(content: Text('Usuário cadastrado com sucesso!')),
       );
 
-      // Fecha a tela atual e retorna para a tela anterior (Entrada)
+
       Navigator.pop(context);
     } else {
       if (!mounted) return;
