@@ -1,14 +1,14 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:primeiro_app/servicos/AuthService.dart';
+
+import 'sessao.dart';
 import 'chart.dart';
 import 'criar.dart';
 import 'config.dart';
 
 class Entrada extends StatefulWidget {
-  final int meuId; // ID do usuário que está logado
-
-  const Entrada({super.key, this.meuId = 1}); // Padrão 1 caso não seja informado
+  const Entrada({super.key});
 
   @override
   State<Entrada> createState() => _EntradaState();
@@ -16,11 +16,20 @@ class Entrada extends StatefulWidget {
 
 class _EntradaState extends State<Entrada> {
   late Future<List<Map<String, dynamic>>> _futureUsuarios;
+  int? _meuId;
 
   @override
   void initState() {
     super.initState();
     _futureUsuarios = AuthService.listarUsuarios();
+    _carregarMeuId();
+  }
+
+  Future<void> _carregarMeuId() async {
+    final id = await Sessao.obterUsuarioLogado();
+    setState(() {
+      _meuId = id;
+    });
   }
 
   Widget _construirImagemPerfil(String caminhoFoto) {
@@ -55,8 +64,6 @@ class _EntradaState extends State<Entrada> {
       backgroundColor: Colors.black87,
       appBar: AppBar(
         toolbarHeight: 100,
-        backgroundColor: Colors.blue,
-        centerTitle: true,
         title: const Column(
           children: [
             Text(
@@ -71,27 +78,35 @@ class _EntradaState extends State<Entrada> {
             Text(
               "Por favor escolha um dos usuários abaixo para conversar",
               style: TextStyle(
-                color: Colors.white70,
+                color: Colors.white54,
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
               ),
             ),
+
           ],
         ),
+
+
         actions: [
           IconButton(
             icon: const Icon(Icons.settings, color: Colors.white),
             onPressed: () {
+
+              if (_meuId == null) return;
+
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  // CORRIGIDO: Passando widget.meuId para a tela Config
-                  builder: (context) => Config(meuId: widget.meuId),
+                  builder: (context) => Config(meuId: _meuId!),
                 ),
               );
             },
           ),
         ],
+
+        centerTitle: true,
+        backgroundColor: Colors.blue,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -102,7 +117,8 @@ class _EntradaState extends State<Entrada> {
               child: FutureBuilder<List<Map<String, dynamic>>>(
                 future: _futureUsuarios,
                 builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
+                  if (snapshot.connectionState == ConnectionState.waiting ||
+                      _meuId == null) {
                     return const Center(
                       child: CircularProgressIndicator(color: Colors.blue),
                     );
@@ -117,7 +133,19 @@ class _EntradaState extends State<Entrada> {
                     );
                   }
 
-                  final usuarios = snapshot.data!;
+
+                  final usuarios = snapshot.data!
+                      .where((u) => u['ID'] != _meuId)
+                      .toList();
+
+                  if (usuarios.isEmpty) {
+                    return const Center(
+                      child: Text(
+                        "Nenhum outro usuário cadastrado ainda.",
+                        style: TextStyle(color: Colors.white54),
+                      ),
+                    );
+                  }
 
                   return ListView.builder(
                     itemCount: usuarios.length,
@@ -144,10 +172,9 @@ class _EntradaState extends State<Entrada> {
                                 MaterialPageRoute(
                                   builder: (context) => Chat(
                                     nome: nomeUsuario,
-                                    foto: fotoPerfil,
                                     idUsuarioDestino: usuario['ID'],
-                                    // CORRIGIDO: Usando widget.meuId em vez do número fixo
-                                    meuId: widget.meuId,
+                                    meuId: _meuId!,
+                                    foto: fotoPerfil,
                                   ),
                                 ),
                               );

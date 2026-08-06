@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:primeiro_app/servicos/gerenciador.dart';
 import 'perfil.dart';
 import 'login.dart';
 
-class Config extends StatefulWidget {
-  final int meuId; // precisa vir de quem abriu essa tela (o usuário logado)
+import 'sessao.dart';
 
+class Config extends StatefulWidget {
+  final int meuId;
   const Config({super.key, required this.meuId});
 
   @override
@@ -15,13 +17,13 @@ class _ConfigState extends State<Config> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black87,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         toolbarHeight: 100,
         backgroundColor: Colors.blue,
         centerTitle: true,
-        title: const Column(
-          children: [
+        title: Column(
+          children: const [
             Text(
               "Configurações",
               style: TextStyle(
@@ -41,13 +43,20 @@ class _ConfigState extends State<Config> {
             ),
           ],
         ),
+
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.brightness_6),
+                onPressed: alternarTema,
+              ),
+            ],
+
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
             const SizedBox(height: 12),
-            // Botão 1: Perfil
             SizedBox(
               width: double.infinity,
               height: 50,
@@ -62,7 +71,7 @@ class _ConfigState extends State<Config> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      // repassa o meuId que o Config recebeu
+
                       builder: (context) => Perfil(meuId: widget.meuId),
                     ),
                   );
@@ -78,36 +87,9 @@ class _ConfigState extends State<Config> {
               ),
             ),
 
-            const SizedBox(height: 12),
-
-            // Botão 2: Exemplo de botão funcional adicional (Tema)
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white10,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                onPressed: () {
-                  // Insira a ação desse botão aqui
-                },
-                child: const Text(
-                  "Tema / Opções",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
 
             const SizedBox(height: 12),
 
-            // Botão 3: Sair
             SizedBox(
               width: double.infinity,
               height: 50,
@@ -118,14 +100,14 @@ class _ConfigState extends State<Config> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                onPressed: () {
-                  Navigator.push(
+                onPressed: () async {
+                  await Sessao.sair();
+                  if (!context.mounted) return;
+                  Navigator.pushAndRemoveUntil(
                     context,
-                    MaterialPageRoute(
-                      builder: (context) => const Login(),
-                    ),
+                    MaterialPageRoute(builder: (context) => const Login()),
+                        (route) => false,
                   );
-
                 },
                 child: const Text(
                   "Sair",

@@ -1,28 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:sqflite/sqflite.dart';
-import 'package:primeiro_app/bancoDados/conect.dart';
+import 'package:primeiro_app/servicos/AuthService.dart';
+import 'sessao.dart';
 import 'criar.dart';
 import 'esqueci_senha.dart';
 import 'pessoas.dart';
-
-class AuthService {
-
-  static Future<bool> validarLogin(String email, String senha) async {
-    try {
-      Database db = await ConexaoSqflite.obterConexao();
-
-      List<Map<String, dynamic>> resultados = await db.rawQuery(
-        'SELECT ID FROM USUARIOS WHERE EMAIL = ? AND SENHA = ?',
-        [email, senha],
-      );
-
-      return resultados.isNotEmpty;
-    } catch (e) {
-      print("Erro ao validar login no SQLite: $e");
-      return false;
-    }
-  }
-}
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -39,9 +20,12 @@ class _LoginState extends State<Login> {
     String usuarioDig = controllerUsu.text;
     String senhaDig = controllerSenha.text;
 
-    bool loginValido = await AuthService.validarLogin(usuarioDig, senhaDig);
 
-    if (loginValido) {
+    int? idLogado = await AuthService.validarLogin(usuarioDig, senhaDig);
+
+    if (idLogado != null) {
+      await Sessao.salvarUsuarioLogado(idLogado);
+
       if (!mounted) return;
       Navigator.push(
         context,
@@ -50,14 +34,17 @@ class _LoginState extends State<Login> {
         ),
       );
     } else {
-      print('Algo está errado, desculpe.');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Email ou senha incorretos.')),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black87,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -86,7 +73,7 @@ class _LoginState extends State<Login> {
                   controller: controllerUsu,
                   style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(
-                    hintText: "Dantesoufoda@exemplo.com",
+                    hintText: "seuemail@exemplo.com",
                     hintStyle: const TextStyle(color: Colors.white38),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -151,47 +138,54 @@ class _LoginState extends State<Login> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 20),
-                const Center(
-                  child: Text("Ou", style: TextStyle(color: Colors.white60)),
-                ),
-                const SizedBox(height: 20),
-                Container(
+const SizedBox (height: 70),
+                const SizedBox (height: 40),
+                SizedBox(
+                  width: double.infinity,
                   height: 50,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey.shade300),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SizedBox(width: 10),
-                      Text(
-                        'Com o Google',
-                        style: TextStyle(color: Colors.white),
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                    ],
+                    ),
+                    onPressed: autenticar,
+                    child: const Text(
+                      "Entrar com o google",
+                      style: TextStyle(
+                        color: Colors.blueGrey,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 8),
-                Container(
+                const SizedBox (height: 20),
+                SizedBox(
+                  width: double.infinity,
                   height: 50,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey.shade300),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SizedBox(width: 10),
-                      Text(
-                        'Com o Trem de velho la',
-                        style: TextStyle(color: Colors.white),
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                    ],
+                    ),
+                    onPressed: autenticar,
+                    child: const Text(
+                      "Entrar com o google",
+                      style: TextStyle(
+                        color: Colors.blueGrey,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 40),
+
+
+                const SizedBox(height: 100),
                 SizedBox(
                   width: double.infinity,
                   height: 50,

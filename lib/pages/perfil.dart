@@ -262,7 +262,7 @@ class _PerfilState extends State<Perfil> {
             ),
             const SizedBox(height: 10),
 
-            // ---- Caixa de escolha: NOME ou EMAIL ----
+
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               decoration: BoxDecoration(

@@ -2,6 +2,24 @@ import 'package:sqflite/sqflite.dart';
 import 'package:primeiro_app/bancoDados/conect.dart';
 
 class AuthService {
+  // Retorna o ID do usuário se email/senha baterem, ou null se não baterem
+  static Future<int?> validarLogin(String email, String senha) async {
+    try {
+      Database db = await ConexaoSqflite.obterConexao();
+
+      List<Map<String, dynamic>> resultados = await db.rawQuery(
+        'SELECT ID FROM USUARIOS WHERE EMAIL = ? AND SENHA = ?',
+        [email, senha],
+      );
+
+      if (resultados.isEmpty) return null;
+      return resultados.first['ID'] as int;
+    } catch (e) {
+      print("Erro ao validar login no SQLite: $e");
+      return null;
+    }
+  }
+
   static Future<List<Map<String, dynamic>>> listarUsuarios() async {
     try {
       Database db = await ConexaoSqflite.obterConexao();
@@ -46,7 +64,6 @@ class AuthService {
     }
   }
 
-  // Atualiza só o NOME do usuário
   static Future<bool> atualizarNome(int id, String novoNome) async {
     try {
       Database db = await ConexaoSqflite.obterConexao();
@@ -61,7 +78,6 @@ class AuthService {
     }
   }
 
-  // Atualiza só o EMAIL do usuário
   static Future<bool> atualizarEmail(int id, String novoEmail) async {
     try {
       Database db = await ConexaoSqflite.obterConexao();
@@ -76,7 +92,7 @@ class AuthService {
     }
   }
 
-  // Atualiza só a FOTO do usuário
+
   static Future<bool> atualizarFoto(int id, String novaFoto) async {
     try {
       Database db = await ConexaoSqflite.obterConexao();
