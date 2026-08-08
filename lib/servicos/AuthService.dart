@@ -2,7 +2,7 @@ import 'package:sqflite/sqflite.dart';
 import 'package:primeiro_app/bancoDados/conect.dart';
 
 class AuthService {
-  // Retorna o ID do usuário se email/senha baterem, ou null se não baterem
+
   static Future<int?> validarLogin(String email, String senha) async {
     try {
       Database db = await ConexaoSqflite.obterConexao();
@@ -30,7 +30,7 @@ class AuthService {
     }
   }
 
-  // Busca só 1 usuário pelo ID -- usada na tela de Perfil
+
   static Future<Map<String, dynamic>?> buscarUsuarioPorId(int id) async {
     try {
       Database db = await ConexaoSqflite.obterConexao();

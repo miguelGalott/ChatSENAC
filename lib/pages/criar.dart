@@ -4,6 +4,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:primeiro_app/bancoDados/conect.dart';
 import 'package:primeiro_app/servicos/AuthService.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
 
 class Cadastro extends StatefulWidget {
   const Cadastro({super.key});
@@ -103,6 +106,63 @@ class _CadastroState extends State<Cadastro> {
       );
     }
   }
+
+  void cadastrarNoProfessor() async {
+    String usuarioDig = controllerUsu.text.trim();
+    String senhaDig = controllerSenha.text.trim();
+    String emailDig = controllerEmail.text.trim();
+
+
+    if (usuarioDig.isEmpty || senhaDig.isEmpty || emailDig.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Preencha os campos obrigatórios!')),
+      );
+      return;
+    }
+
+
+    var url = Uri.http("10.112.4.33", "/api/cadastro");
+
+    try {
+      var resposta = await http.post(
+        url,
+        body: {
+          'nome': usuarioDig,
+          'senha': senhaDig,
+          'email': emailDig,
+
+        },
+      );
+
+      if (resposta.statusCode == 200 || resposta.statusCode == 201) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Usuário cadastrado com sucesso!')),
+        );
+        Navigator.pop(context);
+      } else if (resposta.statusCode == 400) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro: ${resposta.body}')),
+        );
+      } else {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro inesperado (${resposta.statusCode}).'),
+          ),
+        );
+      }
+    } catch (e) {
+      print("Erro de conexão com o servidor: $e");
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Não foi possível conectar ao servidor.')),
+      );
+    }
+  }
+
+
 
   bool _ehUrl(String caminho) {
     return caminho.startsWith('http://') || caminho.startsWith('https://');

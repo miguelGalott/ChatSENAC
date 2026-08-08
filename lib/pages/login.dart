@@ -4,6 +4,8 @@ import 'sessao.dart';
 import 'criar.dart';
 import 'esqueci_senha.dart';
 import 'pessoas.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -15,11 +17,57 @@ class Login extends StatefulWidget {
 class _LoginState extends State<Login> {
   final TextEditingController controllerUsu = TextEditingController();
   final TextEditingController controllerSenha = TextEditingController();
+  bool _isObscure = true;
+
+  Future<void> autenticarServidor(
+      BuildContext context,
+      String email,
+      String senha,
+      ) async {
+    var url = Uri.http("10.112.4.33", "/api/login");
+
+    try {
+      var resposta = await http.post(
+        url,
+        body: {
+          'email': email,
+          'senha': senha,
+        },
+      );
+
+      if (resposta.statusCode == 200) {
+        final dados = jsonDecode(resposta.body);
+        int idLogado = dados['id'];
+
+        await Sessao.salvarUsuarioLogado(idLogado);
+
+        if (!context.mounted) return;
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const Entrada()),
+        );
+      } else if (resposta.statusCode == 400 || resposta.statusCode == 404) {
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Email ou senha incorretos.')),
+        );
+      } else {
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Erro inesperado no servidor.')),
+        );
+      }
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Não foi possível conectar ao servidor.')),
+      );
+    }
+  }
 
   void autenticar() async {
     String usuarioDig = controllerUsu.text;
     String senhaDig = controllerSenha.text;
-
 
     int? idLogado = await AuthService.validarLogin(usuarioDig, senhaDig);
 
@@ -85,13 +133,24 @@ class _LoginState extends State<Login> {
                 const SizedBox(height: 8),
                 TextField(
                   controller: controllerSenha,
+                  obscureText: _isObscure,
                   style: const TextStyle(color: Colors.white),
-                  obscureText: true,
                   decoration: InputDecoration(
                     hintText: "••••••••",
                     hintStyle: const TextStyle(color: Colors.white38),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
+                    ),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _isObscure ? Icons.visibility_off : Icons.visibility,
+                        color: Colors.white70,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _isObscure = !_isObscure;
+                        });
+                      },
                     ),
                   ),
                 ),
@@ -138,54 +197,51 @@ class _LoginState extends State<Login> {
                     ),
                   ),
                 ),
-const SizedBox (height: 70),
-                const SizedBox (height: 40),
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    onPressed: autenticar,
-                    child: const Text(
-                      "Entrar com o google",
-                      style: TextStyle(
-                        color: Colors.blueGrey,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox (height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    onPressed: autenticar,
-                    child: const Text(
-                      "Entrar com o google",
-                      style: TextStyle(
-                        color: Colors.blueGrey,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-
-
                 const SizedBox(height: 100),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: autenticar,
+                    child: const Text(
+                      "Entrar com o Google",
+                      style: TextStyle(
+                        color: Colors.blueGrey,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: autenticar,
+                    child: const Text(
+                      "Entrar com o trem de vei",
+                      style: TextStyle(
+                        color: Colors.blueGrey,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 150),
                 SizedBox(
                   width: double.infinity,
                   height: 50,
